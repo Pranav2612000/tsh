@@ -7,13 +7,14 @@ fn main() {
     let command_to_execute = tsh::get_command(&args);
     //println!("{}", command_to_execute);
     match command_to_execute {
-        tsh::CmdResult::EntryAdded(_message) => {
-            println!("entry added");
+        tsh::CmdResult::EntryAdded(message) => {
+            println!("{}", message);
         }
         tsh::CmdResult::CmdExtracted => {
             println!("ssh command rcvd");
         }
-        tsh::CmdResult::DisplayHelp(_message) => {
+        tsh::CmdResult::DisplayHelp(message) => {
+            println!("{}", message);
             println!("Display help output here");
         }
     }
