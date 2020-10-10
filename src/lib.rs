@@ -1,3 +1,7 @@
+use std::fs;
+use directories::UserDirs;
+use std::path::PathBuf;
+
 pub enum CmdResult {
     EntryAdded(String),
     CmdExtracted,
@@ -32,7 +36,6 @@ pub fn get_command(args: &[String]) -> CmdResult {
         let entry_config = AddEntryConfig::new(&args);
         match entry_config {
             Ok(entry_config) => {
-                println!("{:?}", entry_config);
                 add_entry(entry_config);
             }
             Err(err) => {
@@ -41,22 +44,44 @@ pub fn get_command(args: &[String]) -> CmdResult {
         }
     }
     let command = &args[1];
-    println!("{}", command);
     CmdResult::EntryAdded("entry added".to_string())
 }
 
 pub fn add_entry(params: AddEntryConfig) -> Result<String, &'static str>{
-    println!("{}", params.entry_name);
-    Ok("OK".to_string())
-    // Check if the 2nd argument is add
-
-    // Extract name to be given to entry
-
     // create /tsh directory if not exist
+
+    /* Get users home directory */
+    let dir = UserDirs::new();
+    let user_dirs = match dir {
+        Some(x) => {
+            x
+        }
+        None => {
+            return Err("No home directory defined");
+        }
+    };
+    let home_dir = user_dirs.home_dir();
+
+
+    /* create path of the ~/tsh directory to be added */
+    let mut tsh_dir: PathBuf = home_dir.to_path_buf();
+    tsh_dir.push("tsh");
+
+    /* create the new directory */
+    match fs::create_dir_all(tsh_dir) {
+        Ok(_) => {}
+        Err(err) => {
+            return Err("Error creating directory");
+        }
+    };
+
+    //let tsh_dir: PathBuf = [home_dir, "tsh"].iter().collect();
+
 
     // create /tsh/<name> folder. error if already exists
 
     // copy key from given path to this directory
 
     // add endpoint to a txt file
+    Ok("OK".to_string())
 }
