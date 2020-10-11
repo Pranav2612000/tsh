@@ -1,6 +1,7 @@
 use std::fs;
 use directories::UserDirs;
 use std::path::PathBuf;
+use std::path::Path;
 
 pub enum CmdResult {
     EntryAdded(String),
@@ -36,7 +37,12 @@ pub fn get_command(args: &[String]) -> CmdResult {
         let entry_config = AddEntryConfig::new(&args);
         match entry_config {
             Ok(entry_config) => {
-                add_entry(entry_config);
+                match add_entry(entry_config) {
+                    Ok(_) => {}
+                    Err(err) => {
+                        return CmdResult::DisplayHelp(err.to_string());
+                    }
+                }
             }
             Err(err) => {
                 return CmdResult::DisplayHelp(err.to_string());
@@ -67,8 +73,8 @@ pub fn add_entry(params: AddEntryConfig) -> Result<String, &'static str>{
     let mut tsh_dir: PathBuf = home_dir.to_path_buf();
     tsh_dir.push("tsh");
 
-    /* create the new directory */
-    match fs::create_dir_all(tsh_dir) {
+    /* create the tsh directory if not exists*/
+    match fs::create_dir_all(&tsh_dir) {
         Ok(_) => {}
         Err(err) => {
             return Err("Error creating directory");
@@ -79,8 +85,30 @@ pub fn add_entry(params: AddEntryConfig) -> Result<String, &'static str>{
 
 
     // create /tsh/<name> folder. error if already exists
+    tsh_dir.push(&params.entry_name);
+    let entry_exists: bool = Path::new(&tsh_dir).is_dir();
+    if entry_exists == true {
+        return Err("Another entry with same name exists!");
+    }
+    match fs::create_dir_all(&tsh_dir) {
+        Ok(_) => {}
+        Err(err) => {
+            return Err("Error creating directory");
+        }
+    };
 
     // copy key from given path to this directory
+    let orig_key_path: PathBuf = [params.key_location].iter().collect();
+    tsh_dir.push(params.entry_name + ".pem");
+
+    match fs::copy(orig_key_path, tsh_dir) {
+        Ok(_) => {}
+        Err(err) => {
+            //return Err(&err.to_string()[..]);
+            return Err("Error copying key");
+        }
+    }
+    //let orig_key_path: PathBu
 
     // add endpoint to a txt file
     Ok("OK".to_string())
