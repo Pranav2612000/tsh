@@ -94,7 +94,7 @@ pub fn get_command(args: &[String]) -> CmdResult {
     }
 }
 
-pub fn add_entry(params: AddEntryConfig) -> Result<String, &'static str>{
+pub fn add_entry(params: AddEntryConfig) -> Result<String, &'static str> {
     // create /tsh directory if not exist
 
     /* Get users home directory */
