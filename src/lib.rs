@@ -2,6 +2,7 @@ use std::fs;
 use directories::UserDirs;
 use std::path::PathBuf;
 use std::path::Path;
+use std::io::Write;
 
 pub enum CmdResult {
     EntryAdded(String),
@@ -99,17 +100,36 @@ pub fn add_entry(params: AddEntryConfig) -> Result<String, &'static str>{
 
     // copy key from given path to this directory
     let orig_key_path: PathBuf = [params.key_location].iter().collect();
-    tsh_dir.push(params.entry_name + ".pem");
 
-    match fs::copy(orig_key_path, tsh_dir) {
+    let mut key_name = (&params.entry_name).clone();
+    key_name = key_name + ".pem";
+    tsh_dir.push(key_name);
+    match fs::copy(orig_key_path, &tsh_dir) {
         Ok(_) => {}
         Err(err) => {
             //return Err(&err.to_string()[..]);
             return Err("Error copying key");
         }
     }
-    //let orig_key_path: PathBu
 
-    // add endpoint to a txt file
+    // add command to a txt file
+    let entry_key_location = match tsh_dir.to_str() {
+        Some(x) => {x}
+        None => {
+            return Err("Error constructing command");
+        }
+    };
+    let cmd = "ssh -i ".to_string() + entry_key_location + " " + &params.endpoint;
+
+    tsh_dir.pop();
+    tsh_dir.push(params.entry_name + ".txt");
+    let mut file = match fs::File::create(tsh_dir) {
+        Ok(x) => {x}
+        Err(err) => {
+            return Err("Error opening file to save command");
+        }
+    };
+    file.write_all(cmd.as_bytes());
+
     Ok("OK".to_string())
 }
