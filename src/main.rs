@@ -10,8 +10,9 @@ fn main() {
         tsh::CmdResult::EntryAdded(message) => {
             println!("{}", message);
         }
-        tsh::CmdResult::CmdExtracted => {
+        tsh::CmdResult::CmdExtracted(cmd) => {
             println!("ssh command rcvd");
+            println!("{}", cmd);
         }
         tsh::CmdResult::DisplayHelp(message) => {
             println!("{}", message);

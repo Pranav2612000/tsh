@@ -3,10 +3,11 @@ use directories::UserDirs;
 use std::path::PathBuf;
 use std::path::Path;
 use std::io::Write;
+use std::io::{self, BufRead};
 
 pub enum CmdResult {
     EntryAdded(String),
-    CmdExtracted,
+    CmdExtracted(String),
     DisplayHelp(String),
 }
 
@@ -30,6 +31,11 @@ impl AddEntryConfig {
     }
 }
 
+fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<fs::File>>> where P: AsRef<Path>, {
+    let file = fs::File::open(filename)?;
+    Ok(io::BufReader::new(file).lines())
+}
+
 pub fn get_command(args: &[String]) -> CmdResult {
     if args.len() < 2 {
         return CmdResult::DisplayHelp("error".to_string());
@@ -49,9 +55,43 @@ pub fn get_command(args: &[String]) -> CmdResult {
                 return CmdResult::DisplayHelp(err.to_string());
             }
         }
+        CmdResult::EntryAdded("entry added".to_string())
+    } else {
+        // Search for name in saved names.
+        let entry_name = &args[1];
+        /* Get users home directory */
+        let dir = UserDirs::new();
+        let user_dirs = match dir {
+            Some(x) => {
+                x
+            }
+            None => {
+                return CmdResult::DisplayHelp("No home directory defined".to_string());
+            }
+        };
+        let home_dir = user_dirs.home_dir();
+
+        let mut tsh_dir: PathBuf = home_dir.to_path_buf();
+        tsh_dir.push("tsh");
+        tsh_dir.push(entry_name);
+        let entry_exists: bool = Path::new(&tsh_dir).is_dir();
+        if entry_exists == false {
+            return CmdResult::DisplayHelp("No entry with name exists!".to_string())
+        }
+
+        let mut command_file = entry_name.clone();
+        command_file = command_file + ".txt";
+        tsh_dir.push(command_file);
+
+        if let Ok(lines) = read_lines(tsh_dir) {
+            for line in lines {
+                if let Ok(cmd) = line {
+                    return CmdResult::CmdExtracted(cmd);
+                }
+            }
+        }
+        return CmdResult::DisplayHelp("Incorrect Syntax".to_string())
     }
-    let command = &args[1];
-    CmdResult::EntryAdded("entry added".to_string())
 }
 
 pub fn add_entry(params: AddEntryConfig) -> Result<String, &'static str>{
