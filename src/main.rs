@@ -20,7 +20,11 @@ fn main() {
         }
         tsh::CmdResult::DisplayHelp(message) => {
             println!("{}", message);
-            println!("Display help output here");
+            println!("Syntax:");
+            println!("To add keys:");
+            println!("tsh add <nickname> <endpoint> <key-location>");
+            println!("To ssh:");
+            println!("tsh <nickname>");
         }
     }
 }
