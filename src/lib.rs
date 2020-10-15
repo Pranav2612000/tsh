@@ -40,6 +40,9 @@ pub fn get_command(args: &[String]) -> CmdResult {
     if args.len() < 2 {
         return CmdResult::DisplayHelp("error".to_string());
     }
+    if(args[1] == "-h".to_string()) {
+        return CmdResult::DisplayHelp("tsh: built by Pranav2612000".to_string());
+    }
     if args[1] == "add".to_string() {
         let entry_config = AddEntryConfig::new(&args);
         match entry_config {
